@@ -11,3 +11,4 @@ textblob
 nrclex
 transformers
 torch
+seaborn
