@@ -1,0 +1,10 @@
+streamlit
+pandas
+python-dotenv
+google-api-python-client
+numpy
+nltk
+matplotlib
+requests
+openai
+textblo
