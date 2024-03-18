@@ -9,3 +9,5 @@ requests
 openai
 textblob
 nrclex
+transformers
+torch
