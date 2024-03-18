@@ -7,4 +7,5 @@ nltk
 matplotlib
 requests
 openai
-textblo
+textblob
+nrclex
