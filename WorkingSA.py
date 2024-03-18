@@ -18,8 +18,8 @@ from openai import OpenAI
 from textblob import TextBlob
 from nrclex import NRCLex
 
-youtube_api_key = st.secrets('YOUTUBE_API_KEY')
-tt_and_ig_api_key = st.secrets('TIKTOK_AND_INSTAGRAM_API_KEY')
+youtube_api_key = st.secrets["YOUTUBE_API_KEY"]
+tt_and_ig_api_key = st.secrets["TIKTOK_AND_INSTAGRAM_API_KEY"]
 
 if 'sentiment_analysis_completed' not in st.session_state:
     st.session_state['sentiment_analysis_completed'] = False
@@ -468,7 +468,7 @@ if st.session_state.get('emotion_analysis_completed', False):
 #load_dotenv()
 
 client = OpenAI()
-openai.api_key = st.secrets('OPENAI_API_KEY')
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 if not openai.api_key:
     raise ValueError("OPENAI_API_KEY environment variable not set or invalid.")
 
