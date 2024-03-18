@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from dotenv import load_dotenv
 import os
 from googleapiclient.discovery import build
 import numpy as np
@@ -18,13 +17,6 @@ import os
 from openai import OpenAI
 from textblob import TextBlob
 from nrclex import NRCLex
-
-
-# Set the OpenAI API key directly from an environment variable or statically
-load_dotenv()
-
-youtube_api_key = os.getenv('YOUTUBE_API_KEY')
-tt_and_ig_api_key = os.getenv('TIKTOK_AND_INSTAGRAM_API_KEY')
 
 if 'sentiment_analysis_completed' not in st.session_state:
     st.session_state['sentiment_analysis_completed'] = False
