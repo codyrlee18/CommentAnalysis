@@ -17,6 +17,7 @@ import os
 from openai import OpenAI
 from textblob import TextBlob
 from nrclex import NRCLex
+import seaborn as sns
 
 youtube_api_key = st.secrets["YOUTUBE_API_KEY"]
 tt_and_ig_api_key = st.secrets["TIKTOK_AND_INSTAGRAM_API_KEY"]
