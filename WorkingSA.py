@@ -59,37 +59,74 @@ def extract_instagram_shortcode(url):
 
 
 #plotting function
-def plot_stacked_sentiment_proportions(df, selected_video_ids):
-    # Set up the matplotlib figure
-    fig, ax = plt.subplots()
+# def plot_stacked_sentiment_proportions(df, selected_video_ids):
+#     # Set up the matplotlib figure
+#     fig, ax = plt.subplots()
 
-    # Filter the DataFrame for the selected video IDs
-    filtered_df = df[df['Video ID'].isin(selected_video_ids)].set_index('Video ID')
+#     # Filter the DataFrame for the selected video IDs
+#     filtered_df = df[df['Video ID'].isin(selected_video_ids)].set_index('Video ID')
     
-    # Normalize the sentiments to sum up to 100%
-    sentiments = ['% Positive', '% Neutral', '% Negative']
-    filtered_df[sentiments] = filtered_df[sentiments].div(filtered_df[sentiments].sum(axis=1), axis=0) * 100
+#     # Normalize the sentiments to sum up to 100%
+#     sentiments = ['% Positive', '% Neutral', '% Negative']
+#     filtered_df[sentiments] = filtered_df[sentiments].div(filtered_df[sentiments].sum(axis=1), axis=0) * 100
 
-    # Plot the DataFrame as a stacked bar chart
-    bars = filtered_df[sentiments].plot(kind='bar', stacked=True, color=['green', 'gainsboro', 'tomato'], ax=ax)
+#     # Plot the DataFrame as a stacked bar chart
+#     bars = filtered_df[sentiments].plot(kind='bar', stacked=True, color=['green', 'gainsboro', 'tomato'], ax=ax)
 
-    # Adding the text labels on each bar
-    for bar in bars.containers:
-        ax.bar_label(bar, fmt='%.1f%%', label_type='center')
+#     # Adding the text labels on each bar
+#     for bar in bars.containers:
+#         ax.bar_label(bar, fmt='%.1f%%', label_type='center')
     
-    # Set plot title and labels
-    ax.set_title('Sentiment Proportions')
-    ax.set_xlabel('Video ID')
-    ax.set_ylabel('Proportions (%)')
+#     # Set plot title and labels
+#     ax.set_title('Sentiment Proportions')
+#     ax.set_xlabel('Video ID')
+#     ax.set_ylabel('Proportions (%)')
 
-    # Rotate the x-axis labels for better readability
-    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+#     # Rotate the x-axis labels for better readability
+#     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
 
-    # Adjust the layout and show the legend
-    ax.legend(title="Sentiment")
+#     # Adjust the layout and show the legend
+#     ax.legend(title="Sentiment")
+#     plt.tight_layout()
+
+    # # Return the matplotlib figure
+    # return fig
+
+def plot_aggregated_sentiment_proportions(aggregated_df, selected_video_ids, aggregate_all=False):
+    # Check if we should aggregate across all videos
+    if aggregate_all:
+        # Sum up all sentiments across selected videos
+        filtered_df = aggregated_df[aggregated_df['Video ID'].isin(selected_video_ids)]
+        total_positive = filtered_df['Positive'].sum()
+        total_neutral = filtered_df['Neutral'].sum()
+        total_negative = filtered_df['Negative'].sum()
+        total_comments = total_positive + total_neutral + total_negative
+        proportions = {
+            '% Positive': (total_positive / total_comments) * 100,
+            '% Neutral': (total_neutral / total_comments) * 100,
+            '% Negative': (total_negative / total_comments) * 100
+        }
+        data = {'Sentiment': ['% Positive', '% Neutral', '% Negative'], 'Proportions': [proportions['% Positive'], proportions['% Neutral'], proportions['% Negative']]}
+        df_to_plot = pd.DataFrame(data)
+        fig, ax = plt.subplots()
+        df_to_plot.plot(kind='bar', x='Sentiment', y='Proportions', ax=ax, color=['green', 'gainsboro', 'tomato'])
+        ax.set_ylabel('Proportions (%)')
+        ax.set_title('Aggregated Sentiment Proportions Across Selected Videos')
+    else:
+        # Existing code to plot per video ID
+        filtered_df = aggregated_df[aggregated_df['Video ID'].isin(selected_video_ids)].set_index('Video ID')
+        sentiments = ['% Positive', '% Neutral', '% Negative']
+        filtered_df[sentiments] = filtered_df[sentiments].div(filtered_df[sentiments].sum(axis=1), axis=0) * 100
+        bars = filtered_df[sentiments].plot(kind='bar', stacked=True, color=['green', 'gainsboro', 'tomato'], ax=ax)
+        for bar in bars.containers:
+            ax.bar_label(bar, fmt='%.1f%%', label_type='center')
+        ax.set_title('Sentiment Proportions')
+        ax.set_xlabel('Video ID')
+        ax.set_ylabel('Proportions (%)')
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+        ax.legend(title="Sentiment")
+
     plt.tight_layout()
-
-    # Return the matplotlib figure
     return fig
 
 
@@ -375,6 +412,7 @@ if st.session_state.get('sentiment_analysis_completed', False):
     st.write(st.session_state['comments_with_sentiment'])
     st.write(st.session_state['aggregated_sentiment_results'])
     #Assuming you store the figure in session_state or recreate it here
+    aggregate_all = select_all
     fig = plot_stacked_sentiment_proportions(st.session_state['aggregated_sentiment_results'], video_ids_to_analyze)
     st.pyplot(fig)
 
