@@ -447,7 +447,7 @@ def plot_emotion_bar_chart(aggregated_df, video_ids_to_analyze):
         melted_df = melted_df[melted_df["Video ID"].isin(video_ids_to_analyze)]
 
     import seaborn as sns
-    sns.barplot(x="Number of Comments", y="Emotion", hue="Video ID", data=melted_df, ax=ax)
+    sns.barplot(x="Number of Comments", y="Emotion", data=melted_df, ax=ax)
     
     plt.title('Aggregated Emotion Results')
     plt.xlabel('Count of Comments')
