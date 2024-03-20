@@ -515,7 +515,7 @@ def summarize_comments(df):
         comments_text = "\n".join(sample_comments)
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": f"Please summarize the following {sentiment} comments in a comprehensive 5 sentence paragraph: {comments_text}"}
+            {"role": "user", "content": f"Here are {sentiment} comments from a social media post. Please summarize the following {sentiment} comments in a comprehensive 5 sentence paragraph: {comments_text}"}
         ]
         
         try:
