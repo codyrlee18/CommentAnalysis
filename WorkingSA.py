@@ -403,9 +403,6 @@ if 'comments_data' in st.session_state and not st.session_state['comments_data']
         else:
             st.error('Please select at least one video ID for sentiment analysis.')
 
-
-
-
 #Directly display sentiment analysis results if analysis has been completed
 if st.session_state.get('sentiment_analysis_completed', False):
     st.write("Sentiment Analysis Results:")
@@ -413,7 +410,7 @@ if st.session_state.get('sentiment_analysis_completed', False):
     st.write(st.session_state['aggregated_sentiment_results'])
     #Assuming you store the figure in session_state or recreate it here
     aggregate_all = select_all
-    fig = plot_stacked_sentiment_proportions(st.session_state['aggregated_sentiment_results'], video_ids_to_analyze)
+    fig = plot_aggregated_sentiment_proportions(st.session_state['aggregated_sentiment_results'], video_ids_to_analyze, aggregate_all=aggregate_all)
     st.pyplot(fig)
 
 def emotion_analysis(comments_df):
