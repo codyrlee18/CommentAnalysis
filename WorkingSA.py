@@ -124,7 +124,8 @@ def plot_aggregated_sentiment_proportions(aggregated_df, selected_video_ids, agg
         ax.set_xlabel('Video ID')
         ax.set_ylabel('Proportions (%)')
         ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
-        ax.legend(title="Sentiment")
+        
+    ax.legend().remove()
 
     plt.tight_layout()
     return fig
@@ -482,12 +483,11 @@ def plot_emotion_bar_chart(aggregated_df, video_ids_to_analyze):
         melted_df = melted_df[melted_df["Video ID"].isin(video_ids_to_analyze)]
 
     import seaborn as sns
-    sns.barplot(x="Number of Comments", y="Emotion", data=melted_df, ax=ax)
+    sns.barplot(x="Number of Comments", y="Emotion", data=melted_df, ax=ax, ci=None)
     
     plt.title('Aggregated Emotion Results')
     plt.xlabel('Count of Comments')
     plt.ylabel('Emotion')
-    plt.legend(title='Video ID', bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
     return fig
 
