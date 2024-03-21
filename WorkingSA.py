@@ -248,19 +248,44 @@ def scrape_tiktok_comments_to_df(aweme_ids, tt_and_ig_api_key):
     return comments_df, creator_usernames
 
 # Function to convert INSTAGRAM short codes to media IDs
-def codes_to_media_ids(short_codes):
-    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
-    code_to_media_id = {}
-    for short_code in short_codes:
-        media_id = 0
-        for letter in short_code:
-            media_id = (media_id * 64) + alphabet.index(letter)
-        code_to_media_id[short_code] = media_id
-    return code_to_media_id
+# def codes_to_media_ids(short_codes):
+#     alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+#     code_to_media_id = {}
+#     for short_code in short_codes:
+#         media_id = 0
+#         for letter in short_code:
+#             media_id = (media_id * 64) + alphabet.index(letter)
+#         code_to_media_id[short_code] = media_id
+#     return code_to_media_id
 
 
-# Function to scrape comments (INSTAGRAM)
-def scrape_instagram_comments(short_codes, tt_and_ig_api_key):
+# # Function to scrape comments (INSTAGRAM)
+# def scrape_instagram_comments(short_codes, tt_and_ig_api_key):
+#     url = "https://rocketapi-for-instagram.p.rapidapi.com/instagram/media/get_comments"
+#     headers = {
+#         "content-type": "application/json",
+#         "X-RapidAPI-Key": tt_and_ig_api_key,
+#         "X-RapidAPI-Host": "rocketapi-for-instagram.p.rapidapi.com"
+#     }
+#     all_comments = []
+#     code_to_media_id = codes_to_media_ids(short_codes)
+#     for short_code, media_id in code_to_media_id.items():
+#         initial_payload = {"id": media_id, "min_id": None}
+#         while True:
+#             response = requests.post(url, json=initial_payload, headers=headers)
+#             data = response.json()
+#             body = data.get('response', {}).get('body', {})
+#             comments = body.get('comments', [])
+#             for comment in comments:
+#                 all_comments.append([short_code, comment['user']['username'], comment['text']])
+#             has_more = body.get('has_more', False)
+#             if not has_more:
+#                 break
+#             max_id = body.get('max_id')
+#             initial_payload['max_id'] = max_id
+#     return pd.DataFrame(all_comments, columns=['Video ID', 'username', 'Comment'])
+
+def scrape_instagram_comments(short_codes, tt_and_ig_api_key, max_comments_per_post=14):
     url = "https://rocketapi-for-instagram.p.rapidapi.com/instagram/media/get_comments"
     headers = {
         "content-type": "application/json",
@@ -269,21 +294,34 @@ def scrape_instagram_comments(short_codes, tt_and_ig_api_key):
     }
     all_comments = []
     code_to_media_id = codes_to_media_ids(short_codes)
+    
     for short_code, media_id in code_to_media_id.items():
-        initial_payload = {"id": media_id, "min_id": None}
-        while True:
-            response = requests.post(url, json=initial_payload, headers=headers)
-            data = response.json()
-            body = data.get('response', {}).get('body', {})
-            comments = body.get('comments', [])
-            for comment in comments:
-                all_comments.append([short_code, comment['user']['username'], comment['text']])
-            has_more = body.get('has_more', False)
-            if not has_more:
-                break
-            max_id = body.get('max_id')
-            initial_payload['max_id'] = max_id
+        comments_fetched = 0
+        min_id = None  # Initialize min_id for pagination
+        while comments_fetched < max_comments_per_post:
+            payload = {"id": media_id, "min_id": min_id}
+            response = requests.post(url, json=payload, headers=headers)
+            if response.status_code == 200:
+                data = response.json()
+                body = data.get('response', {}).get('body', {})
+                comments = body.get('comments', [])
+                next_min_id = body.get('next_min_id', None)
+
+                for comment in comments:
+                    all_comments.append([short_code, comment['user']['username'], comment['text']])
+                    comments_fetched += 1
+                    if comments_fetched >= max_comments_per_post:
+                        break  # Break if we have fetched the maximum number of comments per post
+
+                if not next_min_id or comments_fetched >= max_comments_per_post:
+                    break  # Break the loop if there's no more pagination or we reached the max comments per post
+                min_id = next_min_id
+            else:
+                print(f"Failed to fetch comments for post {short_code}: HTTP {response.status_code}")
+                break  # Break the loop in case of an unsuccessful response
+
     return pd.DataFrame(all_comments, columns=['Video ID', 'username', 'Comment'])
+
 
 # Function to perform SENTIMENT ANALYSIS (unchanged)
 def sentiment_analysis(df):
