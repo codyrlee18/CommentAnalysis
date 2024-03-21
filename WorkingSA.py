@@ -541,7 +541,7 @@ if not openai.api_key:
 def summarize_comments(df):
     summaries = {}
     for sentiment in ['positive', 'negative', 'neutral']:
-        sample_comments = df[df['Sentiment'] == sentiment]['Comment'].sample(n=min(len(df[df['Sentiment'] == sentiment]), 10), replace=False).tolist()
+        sample_comments = df[df['Sentiment'] == sentiment]['Comment'].sample(n=min(len(df[df['Sentiment'] == sentiment]), 50), replace=False).tolist()
         comments_text = "\n".join(sample_comments)
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
