@@ -450,6 +450,7 @@ if st.session_state.get('sentiment_analysis_completed', False):
 #     return comments_df, aggregated_emotion_results
 
 # Initialize the model and tokenizer once, to be reused
+
 tokenizer = AutoTokenizer.from_pretrained("j-hartmann/emotion-english-distilroberta-base")
 model = AutoModelForSequenceClassification.from_pretrained("j-hartmann/emotion-english-distilroberta-base")
 
