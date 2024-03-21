@@ -503,17 +503,23 @@ if 'comments_data' in st.session_state and not st.session_state['comments_data']
 # Function to plot aggregated emotion results
 def plot_emotion_bar_chart(aggregated_df, video_ids_to_analyze):
     fig, ax = plt.subplots()
-    # Flatten the DataFrame to plot individual emotions per video ID
-    # First, reset index to use video IDs as a normal column
     aggregated_df = aggregated_df.reset_index()
-    # Then, melt the DataFrame to have a single column for all emotions
     melted_df = aggregated_df.melt(id_vars=["Video ID"], var_name="Emotion", value_name="Number of Comments")
-    # Filter based on selected video IDs if necessary
     if video_ids_to_analyze:
         melted_df = melted_df[melted_df["Video ID"].isin(video_ids_to_analyze)]
 
-    import seaborn as sns
-    sns.barplot(x="Number of Comments", y="Emotion", data=melted_df, ax=ax, ci=None)
+        
+    color_map = {
+        'anger': 'lightcoral',
+        'disgust': 'lime',
+        'joy': 'yellow',
+        'neutral': 'whitesmoke',
+        'sadness': 'cyan',
+        'surprise': 'fuchsia'
+    }
+        
+    melted_df['Color'] = melted_df['Emotion'].map(color_map)
+    sns.barplot(x="Number of Comments", y="Emotion", data=melted_df, ax=ax, palette=color_map, ci=None)
     
     plt.title('Aggregated Emotion Results')
     plt.xlabel('Count of Comments')
@@ -545,7 +551,7 @@ def summarize_comments(df):
         comments_text = "\n".join(sample_comments)
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": f"Here are {sentiment} comments from a social media influencer marketing campaign. Please summarize the following {sentiment} comments in a comprehensive 5 sentence paragraph: {comments_text}"}
+            {"role": "user", "content": f"Here are {sentiment} comments from a social media influencer campaign. Please summarize and contextualize the following {sentiment} comments in a comprehensive 5 sentence paragraph: {comments_text}"}
         ]
         
         try:
