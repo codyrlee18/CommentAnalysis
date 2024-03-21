@@ -515,7 +515,8 @@ def plot_emotion_bar_chart(aggregated_df, video_ids_to_analyze):
         'joy': 'gold',
         'neutral': 'gainsboro',
         'sadness': 'cyan',
-        'surprise': 'pink'
+        'surprise': 'pink',
+        'fear': 'midnightblue'
     }
         
     melted_df['Color'] = melted_df['Emotion'].map(color_map)
