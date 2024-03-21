@@ -18,6 +18,8 @@ from openai import OpenAI
 from textblob import TextBlob
 from nrclex import NRCLex
 import seaborn as sns
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
 
 youtube_api_key = st.secrets["YOUTUBE_API_KEY"]
 tt_and_ig_api_key = st.secrets["TIKTOK_AND_INSTAGRAM_API_KEY"]
@@ -414,37 +416,64 @@ if st.session_state.get('sentiment_analysis_completed', False):
     fig = plot_aggregated_sentiment_proportions(st.session_state['aggregated_sentiment_results'], video_ids_to_analyze, aggregate_all=aggregate_all)
     st.pyplot(fig)
 
-def emotion_analysis(comments_df):
-    # Process each comment for emotion analysis
-    def analyze_emotion(comment):
-        emotion_obj = NRCLex(comment)
-        affect_frequencies = emotion_obj.affect_frequencies
+# def emotion_analysis(comments_df):
+#     # Process each comment for emotion analysis
+#     def analyze_emotion(comment):
+#         emotion_obj = NRCLex(comment)
+#         affect_frequencies = emotion_obj.affect_frequencies
 
-        # Check if the comment is primarily classified as positive or negative
-        if 'positive' in affect_frequencies and affect_frequencies['positive'] > 0:
-            # If classified as positive, decide between love and joy based on their scores
-            love_score = affect_frequencies.get('love', 0)
-            joy_score = affect_frequencies.get('joy', 0)
-            if love_score > joy_score:
-                top_emotion = 'love'
-            elif joy_score > love_score:
-                top_emotion = 'joy'
-            else:
-                # If love and joy have the same score, choose one or use another logic
-                top_emotion = 'love'  # Default to 'joy' if equal
-        else:
-            # For all other cases, get the most common emotion excluding 'positive' and 'negative'
-            filtered_emotions = {emotion: score for emotion, score in affect_frequencies.items() if emotion not in ['positive', 'negative']}
-            if filtered_emotions:
-                top_emotion = max(filtered_emotions, key=filtered_emotions.get)
-            else:
-                top_emotion = 'None'  # Use 'None' if no emotion is detected
+#         # Check if the comment is primarily classified as positive or negative
+#         if 'positive' in affect_frequencies and affect_frequencies['positive'] > 0:
+#             # If classified as positive, decide between love and joy based on their scores
+#             love_score = affect_frequencies.get('love', 0)
+#             joy_score = affect_frequencies.get('joy', 0)
+#             if love_score > joy_score:
+#                 top_emotion = 'love'
+#             elif joy_score > love_score:
+#                 top_emotion = 'joy'
+#             else:
+#                 # If love and joy have the same score, choose one or use another logic
+#                 top_emotion = 'love'  # Default to 'joy' if equal
+#         else:
+#             # For all other cases, get the most common emotion excluding 'positive' and 'negative'
+#             filtered_emotions = {emotion: score for emotion, score in affect_frequencies.items() if emotion not in ['positive', 'negative']}
+#             if filtered_emotions:
+#                 top_emotion = max(filtered_emotions, key=filtered_emotions.get)
+#             else:
+#                 top_emotion = 'None'  # Use 'None' if no emotion is detected
 
-        return top_emotion
+#         return top_emotion
     
-    comments_df['Emotion'] = comments_df['Comment'].apply(analyze_emotion)
+#     comments_df['Emotion'] = comments_df['Comment'].apply(analyze_emotion)
+#     # Aggregate the results
+#     aggregated_emotion_results = comments_df.groupby(['Video ID', 'Emotion']).size().unstack(fill_value=0)
+#     return comments_df, aggregated_emotion_results
+
+# Initialize the model and tokenizer once, to be reused
+tokenizer = AutoTokenizer.from_pretrained("j-hartmann/emotion-english-distilroberta-base")
+model = AutoModelForSequenceClassification.from_pretrained("j-hartmann/emotion-english-distilroberta-base")
+
+def emotion_analysis(comments_df):
+    def classify_emotion(comment):
+        # Prepare the comment for the model
+        inputs = tokenizer(comment, return_tensors="pt", padding=True, truncation=True, max_length=512)
+        outputs = model(**inputs)
+
+        # Get predictions
+        predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
+        # Get the highest scoring emotion
+        emotion_id = predictions.argmax().item()
+        # Translate the id to the corresponding label
+        emotion_label = model.config.id2label[emotion_id]
+
+        return emotion_label
+
+    # Apply the classify_emotion function to the 'Comment' column
+    comments_df['Emotion'] = comments_df['Comment'].apply(classify_emotion)
+    
     # Aggregate the results
     aggregated_emotion_results = comments_df.groupby(['Video ID', 'Emotion']).size().unstack(fill_value=0)
+    
     return comments_df, aggregated_emotion_results
 
 if 'comments_data' in st.session_state and not st.session_state['comments_data'].empty:
