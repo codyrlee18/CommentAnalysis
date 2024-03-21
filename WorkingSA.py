@@ -248,15 +248,15 @@ def scrape_tiktok_comments_to_df(aweme_ids, tt_and_ig_api_key):
     return comments_df, creator_usernames
 
 # Function to convert INSTAGRAM short codes to media IDs
-# def codes_to_media_ids(short_codes):
-#     alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
-#     code_to_media_id = {}
-#     for short_code in short_codes:
-#         media_id = 0
-#         for letter in short_code:
-#             media_id = (media_id * 64) + alphabet.index(letter)
-#         code_to_media_id[short_code] = media_id
-#     return code_to_media_id
+def codes_to_media_ids(short_codes):
+    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
+    code_to_media_id = {}
+    for short_code in short_codes:
+        media_id = 0
+        for letter in short_code:
+            media_id = (media_id * 64) + alphabet.index(letter)
+        code_to_media_id[short_code] = media_id
+    return code_to_media_id
 
 
 # # Function to scrape comments (INSTAGRAM)
