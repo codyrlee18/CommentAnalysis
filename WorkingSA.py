@@ -122,9 +122,20 @@ def scrape_comments_to_df(video_ids, youtube_api_key):
     all_comments_data = []
     
     for vid in video_ids:
-        # Fetch the video title
+        # Fetch the video details including the channel ID
         video_response = youtube.videos().list(part='snippet', id=vid).execute()
-        video_title = video_response['items'][0]['snippet']['title'] if video_response['items'] else 'Unknown Title'
+        if video_response['items']:
+            video_item = video_response['items'][0]
+            video_title = video_item['snippet']['title']
+            channel_id = video_item['snippet']['channelId']
+            
+            # Now fetch the channel name using the channel ID
+            channel_response = youtube.channels().list(id=channel_id, part='snippet').execute()
+            channel_name = channel_response['items'][0]['snippet']['title'] if channel_response['items'] else 'Unknown Channel'
+
+        else:
+            video_title = 'Unknown Title'
+            channel_name = 'Unknown Channel'
 
         next_page_token = None
         while True:
@@ -140,8 +151,8 @@ def scrape_comments_to_df(video_ids, youtube_api_key):
                 comment = item['snippet']['topLevelComment']['snippet']
                 all_comments_data.append([
                     vid,
-                    video_title,  # Add video title
-                    id,
+                    video_title,  # Video title
+                    channel_name,  # Channel name
                     comment['authorDisplayName'],
                     comment['textDisplay'],
                     comment['publishedAt'],
@@ -153,7 +164,7 @@ def scrape_comments_to_df(video_ids, youtube_api_key):
             if not next_page_token:
                 break
 
-    return pd.DataFrame(all_comments_data, columns=['Video ID','Video Title', 'Creator Username', 'Username', 'Comment', 'Time', 'Likes', 'Reply Count'])
+    return pd.DataFrame(all_comments_data, columns=['Video ID', 'Video Title', 'Creator Username', 'Username', 'Comment', 'Time', 'Likes', 'Reply Count'])
 
 # Function to scrape comments and return a DataFrame (TIKTOK)
 # Now includes TikTok creator's username and supports multiple video IDs
