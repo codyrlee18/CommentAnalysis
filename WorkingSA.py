@@ -141,6 +141,7 @@ def scrape_comments_to_df(video_ids, youtube_api_key):
                 all_comments_data.append([
                     vid,
                     video_title,  # Add video title
+                    id,
                     comment['authorDisplayName'],
                     comment['textDisplay'],
                     comment['publishedAt'],
@@ -152,7 +153,7 @@ def scrape_comments_to_df(video_ids, youtube_api_key):
             if not next_page_token:
                 break
 
-    return pd.DataFrame(all_comments_data, columns=['Video ID','Video Title', 'Username', 'Comment', 'Time', 'Likes', 'Reply Count'])
+    return pd.DataFrame(all_comments_data, columns=['Video ID','Video Title', 'Creator Username', 'Username', 'Comment', 'Time', 'Likes', 'Reply Count'])
 
 # Function to scrape comments and return a DataFrame (TIKTOK)
 # Now includes TikTok creator's username and supports multiple video IDs
