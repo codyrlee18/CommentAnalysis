@@ -158,7 +158,7 @@ def scrape_comments_to_df(video_ids, youtube_api_key):
 # Now includes TikTok creator's username and supports multiple video IDs
 def scrape_tiktok_comments_to_df(aweme_ids, tt_and_ig_api_key):
     comments_url = "https://scraptik.p.rapidapi.com/list-comments"
-    video_details_url = "https://scraptik.p.rapidapi.com/video"
+    video_details_url = "https://scraptik.p.rapidapi.com/get-post"
     
     headers = {
         "X-RapidAPI-Key": tt_and_ig_api_key,
