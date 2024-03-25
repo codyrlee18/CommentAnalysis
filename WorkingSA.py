@@ -251,7 +251,7 @@ def scrape_instagram_comments(short_codes, tt_and_ig_api_key, max_comments_per_p
                 next_min_id = body.get('next_min_id', None)
 
                 for comment in comments:
-                    all_comments.append([short_code, creator_usernamecomment['user']['username'], comment['text']])
+                    all_comments.append([short_code, creator_username, comment['user']['username'], comment['text']])
                     comments_fetched += 1
                     if comments_fetched >= max_comments_per_post:
                         break  # Break if we have fetched the maximum number of comments per post
