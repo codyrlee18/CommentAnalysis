@@ -376,8 +376,8 @@ if 'comments_data' in st.session_state and not st.session_state['comments_data']
 
 # Perform Sentiment Analysis Button
 if 'comments_data' in st.session_state and not st.session_state['comments_data'].empty:
-    video_ids = st.session_state['comments_data']['Video ID'].unique()
-    st.write('Which video IDs do you want to perform sentiment analysis on?')
+    video_ids = st.session_state['comments_data']['Creator Username'].unique()
+    st.write('Which videos do you want to perform sentiment analysis on?')
     select_all = st.checkbox("Select All Videos", value=False)
     multi_select_placeholder = st.empty()
     video_ids_to_analyze = multi_select_placeholder.multiselect(
