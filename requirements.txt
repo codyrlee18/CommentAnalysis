@@ -7,7 +7,6 @@ nltk
 matplotlib
 requests
 openai
-textblob
 nrclex
 transformers
 torch
