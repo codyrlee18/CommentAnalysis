@@ -443,8 +443,8 @@ def emotion_analysis(comments_df):
     return comments_df, aggregated_emotion_results
 
 if 'comments_data' in st.session_state and not st.session_state['comments_data'].empty:
-    video_ids = st.session_state['comments_data']['Video ID'].unique()
-    st.write('Select video IDs for emotion analysis:')
+    video_ids = st.session_state['comments_data']['Creator Username'].unique()
+    st.write('Select videos for emotion analysis:')
     select_all = st.checkbox("Select All Videos", value=False, key="select_all_emotions")
     multi_select_placeholder = st.empty()
     video_ids_to_analyze = multi_select_placeholder.multiselect(
