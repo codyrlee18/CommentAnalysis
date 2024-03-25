@@ -59,41 +59,6 @@ def extract_instagram_shortcode(url):
     match = re.search(r'(?:p|reel)/([a-zA-Z0-9_-]+)/', url)
     return match.group(1) if match else None
 
-
-#plotting function
-# def plot_stacked_sentiment_proportions(df, selected_video_ids):
-#     # Set up the matplotlib figure
-#     fig, ax = plt.subplots()
-
-#     # Filter the DataFrame for the selected video IDs
-#     filtered_df = df[df['Video ID'].isin(selected_video_ids)].set_index('Video ID')
-    
-#     # Normalize the sentiments to sum up to 100%
-#     sentiments = ['% Positive', '% Neutral', '% Negative']
-#     filtered_df[sentiments] = filtered_df[sentiments].div(filtered_df[sentiments].sum(axis=1), axis=0) * 100
-
-#     # Plot the DataFrame as a stacked bar chart
-#     bars = filtered_df[sentiments].plot(kind='bar', stacked=True, color=['green', 'gainsboro', 'tomato'], ax=ax)
-
-#     # Adding the text labels on each bar
-#     for bar in bars.containers:
-#         ax.bar_label(bar, fmt='%.1f%%', label_type='center')
-    
-#     # Set plot title and labels
-#     ax.set_title('Sentiment Proportions')
-#     ax.set_xlabel('Video ID')
-#     ax.set_ylabel('Proportions (%)')
-
-#     # Rotate the x-axis labels for better readability
-#     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
-
-#     # Adjust the layout and show the legend
-#     ax.legend(title="Sentiment")
-#     plt.tight_layout()
-
-    # # Return the matplotlib figure
-    # return fig
-
 def plot_aggregated_sentiment_proportions(aggregated_df, selected_video_ids, aggregate_all=False):
     # Check if we should aggregate across all videos
     if aggregate_all:
@@ -259,31 +224,6 @@ def codes_to_media_ids(short_codes):
     return code_to_media_id
 
 
-# # Function to scrape comments (INSTAGRAM)
-# def scrape_instagram_comments(short_codes, tt_and_ig_api_key):
-#     url = "https://rocketapi-for-instagram.p.rapidapi.com/instagram/media/get_comments"
-#     headers = {
-#         "content-type": "application/json",
-#         "X-RapidAPI-Key": tt_and_ig_api_key,
-#         "X-RapidAPI-Host": "rocketapi-for-instagram.p.rapidapi.com"
-#     }
-#     all_comments = []
-#     code_to_media_id = codes_to_media_ids(short_codes)
-#     for short_code, media_id in code_to_media_id.items():
-#         initial_payload = {"id": media_id, "min_id": None}
-#         while True:
-#             response = requests.post(url, json=initial_payload, headers=headers)
-#             data = response.json()
-#             body = data.get('response', {}).get('body', {})
-#             comments = body.get('comments', [])
-#             for comment in comments:
-#                 all_comments.append([short_code, comment['user']['username'], comment['text']])
-#             has_more = body.get('has_more', False)
-#             if not has_more:
-#                 break
-#             max_id = body.get('max_id')
-#             initial_payload['max_id'] = max_id
-#     return pd.DataFrame(all_comments, columns=['Video ID', 'username', 'Comment'])
 
 def scrape_instagram_comments(short_codes, tt_and_ig_api_key, max_comments_per_post=14):
     url = "https://rocketapi-for-instagram.p.rapidapi.com/instagram/media/get_comments"
@@ -454,39 +394,6 @@ if st.session_state.get('sentiment_analysis_completed', False):
     fig = plot_aggregated_sentiment_proportions(st.session_state['aggregated_sentiment_results'], video_ids_to_analyze, aggregate_all=aggregate_all)
     st.pyplot(fig)
 
-# def emotion_analysis(comments_df):
-#     # Process each comment for emotion analysis
-#     def analyze_emotion(comment):
-#         emotion_obj = NRCLex(comment)
-#         affect_frequencies = emotion_obj.affect_frequencies
-
-#         # Check if the comment is primarily classified as positive or negative
-#         if 'positive' in affect_frequencies and affect_frequencies['positive'] > 0:
-#             # If classified as positive, decide between love and joy based on their scores
-#             love_score = affect_frequencies.get('love', 0)
-#             joy_score = affect_frequencies.get('joy', 0)
-#             if love_score > joy_score:
-#                 top_emotion = 'love'
-#             elif joy_score > love_score:
-#                 top_emotion = 'joy'
-#             else:
-#                 # If love and joy have the same score, choose one or use another logic
-#                 top_emotion = 'love'  # Default to 'joy' if equal
-#         else:
-#             # For all other cases, get the most common emotion excluding 'positive' and 'negative'
-#             filtered_emotions = {emotion: score for emotion, score in affect_frequencies.items() if emotion not in ['positive', 'negative']}
-#             if filtered_emotions:
-#                 top_emotion = max(filtered_emotions, key=filtered_emotions.get)
-#             else:
-#                 top_emotion = 'None'  # Use 'None' if no emotion is detected
-
-#         return top_emotion
-    
-#     comments_df['Emotion'] = comments_df['Comment'].apply(analyze_emotion)
-#     # Aggregate the results
-#     aggregated_emotion_results = comments_df.groupby(['Video ID', 'Emotion']).size().unstack(fill_value=0)
-#     return comments_df, aggregated_emotion_results
-
 # Initialize the model and tokenizer once, to be reused
 
 tokenizer = AutoTokenizer.from_pretrained("j-hartmann/emotion-english-distilroberta-base")
@@ -545,7 +452,6 @@ def plot_emotion_bar_chart(aggregated_df, video_ids_to_analyze):
     melted_df = aggregated_df.melt(id_vars=["Video ID"], var_name="Emotion", value_name="Number of Comments")
     if video_ids_to_analyze:
         melted_df = melted_df[melted_df["Video ID"].isin(video_ids_to_analyze)]
-
         
     color_map = {
         'anger': 'lightcoral',
@@ -576,8 +482,6 @@ if st.session_state.get('emotion_analysis_completed', False):
     st.pyplot(fig)
 
 # Set the OpenAI API key directly from an environment variable or statically
-#load_dotenv()
-
 client = OpenAI()
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 if not openai.api_key:
