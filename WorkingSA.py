@@ -396,8 +396,13 @@ if st.session_state.get('sentiment_analysis_completed', False):
 
 # Initialize the model and tokenizer once, to be reused
 
-tokenizer = AutoTokenizer.from_pretrained("j-hartmann/emotion-english-distilroberta-base")
-model = AutoModelForSequenceClassification.from_pretrained("j-hartmann/emotion-english-distilroberta-base")
+@st.cache(allow_output_mutation=True, hash_funcs={"_thread.RLock": lambda _: None, "builtins.weakref": lambda _: None})
+def load_model_and_tokenizer():
+    tokenizer = AutoTokenizer.from_pretrained("j-hartmann/emotion-english-distilroberta-base")
+    model = AutoModelForSequenceClassification.from_pretrained("j-hartmann/emotion-english-distilroberta-base")
+    return tokenizer, model
+
+tokenizer, model = load_model_and_tokenizer()
 
 def emotion_analysis(comments_df):
     def classify_emotion(comment):
