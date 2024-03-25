@@ -235,17 +235,23 @@ def scrape_instagram_comments(short_codes, tt_and_ig_api_key, max_comments_per_p
     for short_code, media_id in code_to_media_id.items():
         comments_fetched = 0
         min_id = None  # Initialize min_id for pagination
+        creator_username = None
         while comments_fetched < max_comments_per_post:
             payload = {"id": media_id, "min_id": min_id}
             response = requests.post(url, json=payload, headers=headers)
             if response.status_code == 200:
                 data = response.json()
                 body = data.get('response', {}).get('body', {})
+
+                if not creator_username:
+                    caption = body.get('caption',{})
+                    creator_username = caption.get('user', {}).get('username', 'Unknown')
+
                 comments = body.get('comments', [])
                 next_min_id = body.get('next_min_id', None)
 
                 for comment in comments:
-                    all_comments.append([short_code, comment['user']['username'], comment['text']])
+                    all_comments.append([short_code, creator_usernamecomment['user']['username'], comment['text']])
                     comments_fetched += 1
                     if comments_fetched >= max_comments_per_post:
                         break  # Break if we have fetched the maximum number of comments per post
@@ -257,7 +263,7 @@ def scrape_instagram_comments(short_codes, tt_and_ig_api_key, max_comments_per_p
                 print(f"Failed to fetch comments for post {short_code}: HTTP {response.status_code}")
                 break  # Break the loop in case of an unsuccessful response
 
-    return pd.DataFrame(all_comments, columns=['Video ID', 'username', 'Comment'])
+    return pd.DataFrame(all_comments, columns=['Video ID', 'Creator Username', 'username', 'Comment'])
 
 
 # Function to perform SENTIMENT ANALYSIS (unchanged)
