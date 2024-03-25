@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import os
 from googleapiclient.discovery import build
 import numpy as np
 import re
@@ -8,14 +7,12 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.sentiment import SentimentIntensityAnalyzer
-import io
 import matplotlib.pyplot as plt
 import requests
 import time
 import openai 
 import os
 from openai import OpenAI
-from textblob import TextBlob
 from nrclex import NRCLex
 import seaborn as sns
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
