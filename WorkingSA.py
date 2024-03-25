@@ -174,7 +174,7 @@ def scrape_tiktok_comments_to_df(aweme_ids, tt_and_ig_api_key):
         creator_username = 'Unknown Creator'
         if video_response.status_code == 200:
             video_data = video_response.json()
-            creator_username = video_data.get('author', {}).get('unique_id', 'Unknown Creator')
+            creator_username = video_data.get('aweme_detail', {}).get('author', {}).get('nickname', 'Unknown Creator')
             creator_usernames[aweme_id] = creator_username
 
         cursor = "0"
