@@ -376,7 +376,7 @@ if 'comments_data' in st.session_state and not st.session_state['comments_data']
 
 # Perform Sentiment Analysis Button
 if 'comments_data' in st.session_state and not st.session_state['comments_data'].empty:
-    video_ids = st.session_state['comments_data']['Creator Username'].unique()
+    video_ids = st.session_state['comments_data']['Video ID'].unique()
     st.write('Which videos do you want to perform sentiment analysis on?')
     select_all = st.checkbox("Select All Videos", value=False)
     multi_select_placeholder = st.empty()
@@ -389,7 +389,7 @@ if 'comments_data' in st.session_state and not st.session_state['comments_data']
     if st.button('Analyze Sentiments on Selected Videos'):
         if video_ids_to_analyze:
             # Filter comments based on selected video IDs
-            filtered_comments_df = st.session_state['comments_data'][st.session_state['comments_data']['Creator Username'].isin(video_ids_to_analyze)]
+            filtered_comments_df = st.session_state['comments_data'][st.session_state['comments_data']['Video ID'].isin(video_ids_to_analyze)]
             modified_df, aggregated_df = sentiment_analysis(filtered_comments_df)
             st.session_state['comments_with_sentiment'] = modified_df
             st.session_state['aggregated_sentiment_results'] = aggregated_df
@@ -443,7 +443,7 @@ def emotion_analysis(comments_df):
     return comments_df, aggregated_emotion_results
 
 if 'comments_data' in st.session_state and not st.session_state['comments_data'].empty:
-    video_ids = st.session_state['comments_data']['Creator Username'].unique()
+    video_ids = st.session_state['comments_data']['Video ID'].unique()
     st.write('Select videos for emotion analysis:')
     select_all = st.checkbox("Select All Videos", value=False, key="select_all_emotions")
     multi_select_placeholder = st.empty()
