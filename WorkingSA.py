@@ -284,30 +284,28 @@ def scrape_instagram_comments(short_codes, tt_and_ig_api_key, max_comments_per_p
 
     return pd.DataFrame(all_comments, columns=['Video ID', 'Creator Username', 'username', 'Comment'])
 
-
-# Function to perform SENTIMENT ANALYSIS (unchanged)
-def sentiment_analysis(df):
-    sid = SentimentIntensityAnalyzer()
-    stopwords_list = stopwords.words('english')
+@st.cache_resource
+def load_sentiment_model_and_tokenizer():
+    tokenizer = AutoTokenizer.from_pretrained("siebert/sentiment-roberta-large-english")
+    model = AutoModelForSequenceClassification.from_pretrained("siebert/sentiment-roberta-large-english")
+    return tokenizer, model
     
+tokenizer, model = load_sentiment_model_and_tokenizer()
+
+
+#Let's use Hugging Face instead to perform sentiment analysis:
+# Function to perform SENTIMENT ANALYSIS
+def sentiment_analysis(df):
     # Define a function to classify sentiment of each comment
     def classify_comment_sentiment(comment):
-        # Preprocess the comment
-        comment = re.sub(r'[^\w\s]', '', comment).lower()  # Remove punctuation and convert to lowercase
-        tokens = word_tokenize(comment)  # Tokenize the comment
-        filtered_tokens = [token for token in tokens if token not in stopwords_list]  # Remove stopwords
-        # Get the sentiment score and classify
-        sentiment_score = sid.polarity_scores(' '.join(filtered_tokens))
-        if sentiment_score['compound'] > 0.05:
-            return 'positive'
-        elif sentiment_score['compound'] < -0.05:
-            return 'negative'
-        else:
-            return 'neutral'
+        inputs = tokenizer.encode(comment, return_tensors="pt", max_length=512, truncation=True)
+        outputs = model(inputs)
+        predicted_class = torch.argmax(outputs.logits)
+        label = "positive" if predicted_class == 1 else "negative" if predicted_class == 0 else "neutral"
+        return label
 
     # Apply the function to the 'Comment' column to create the 'Sentiment' column
     df['Sentiment'] = df['Comment'].apply(classify_comment_sentiment)
-    
     
     # Aggregate sentiment counts by video ID
     video_sentiment_data = []
@@ -335,6 +333,58 @@ def sentiment_analysis(df):
     sentiment_df = pd.concat([pd.DataFrame([overall]), sentiment_df], ignore_index=True)
     
     return df, sentiment_df
+
+
+# # Function to perform SENTIMENT ANALYSIS (unchanged)
+# def sentiment_analysis(df):
+#     sid = SentimentIntensityAnalyzer()
+#     stopwords_list = stopwords.words('english')
+    
+#     # Define a function to classify sentiment of each comment
+#     def classify_comment_sentiment(comment):
+#         # Preprocess the comment
+#         comment = re.sub(r'[^\w\s]', '', comment).lower()  # Remove punctuation and convert to lowercase
+#         tokens = word_tokenize(comment)  # Tokenize the comment
+#         filtered_tokens = [token for token in tokens if token not in stopwords_list]  # Remove stopwords
+#         # Get the sentiment score and classify
+#         sentiment_score = sid.polarity_scores(' '.join(filtered_tokens))
+#         if sentiment_score['compound'] > 0.05:
+#             return 'positive'
+#         elif sentiment_score['compound'] < -0.05:
+#             return 'negative'
+#         else:
+#             return 'neutral'
+
+#     # Apply the function to the 'Comment' column to create the 'Sentiment' column
+#     df['Sentiment'] = df['Comment'].apply(classify_comment_sentiment)
+    
+    
+#     # Aggregate sentiment counts by video ID
+#     video_sentiment_data = []
+#     for vid in df['Video ID'].unique():
+#         video_df = df[df['Video ID'] == vid]
+#         sentiment_counts = {
+#             'Video ID': vid,
+#             'Positive': len(video_df[video_df['Sentiment'] == 'positive']),
+#             'Neutral': len(video_df[video_df['Sentiment'] == 'neutral']),
+#             'Negative': len(video_df[video_df['Sentiment'] == 'negative'])
+#         }
+#         video_sentiment_data.append(sentiment_counts)
+    
+#     sentiment_df = pd.DataFrame(video_sentiment_data)
+#     sentiment_df['Total Comments'] = sentiment_df['Positive'] + sentiment_df['Neutral'] + sentiment_df['Negative']
+#     sentiment_df['% Positive'] = (sentiment_df['Positive'] / sentiment_df['Total Comments']) * 100
+#     sentiment_df['% Neutral'] = (sentiment_df['Neutral'] / sentiment_df['Total Comments']) * 100
+#     sentiment_df['% Negative'] = (sentiment_df['Negative'] / sentiment_df['Total Comments']) * 100
+    
+#     overall = sentiment_df[['Positive', 'Negative', 'Neutral', 'Total Comments']].sum()
+#     overall['Video ID'] = 'Overall'
+#     overall['% Positive'] = (overall['Positive'] / overall['Total Comments']) * 100
+#     overall['% Neutral'] = (overall['Neutral'] / overall['Total Comments']) * 100
+#     overall['% Negative'] = (overall['Negative'] / overall['Total Comments']) * 100
+#     sentiment_df = pd.concat([pd.DataFrame([overall]), sentiment_df], ignore_index=True)
+    
+#     return df, sentiment_df
 
 
 # Pull Comments Button
