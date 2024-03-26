@@ -300,8 +300,13 @@ def sentiment_analysis(df):
     def classify_comment_sentiment(comment):
         inputs = tokenizer.encode(comment, return_tensors="pt", max_length=512, truncation=True)
         outputs = model(inputs)
-        predicted_class = torch.argmax(outputs.logits)
-        label = "positive" if predicted_class == 1 else "negative" if predicted_class == 0 else "neutral"
+        score = outputs.logits.squeeze().tolist()[1]  # Get the score for the positive class
+        if score >= 0.55:
+            label = "positive"
+        elif score <= 0.45:
+            label = "negative"
+        else:
+            label = "neutral"
         return label
 
     # Apply the function to the 'Comment' column to create the 'Sentiment' column
