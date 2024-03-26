@@ -193,7 +193,7 @@ def scrape_tiktok_comments_to_df(aweme_ids, tt_and_ig_api_key):
         has_more = True
 
         while has_more:
-            querystring = {"aweme_id": aweme_id, "count": "100", "cursor": cursor}
+            querystring = {"aweme_id": aweme_id, "count": "75", "cursor": cursor}
             response = requests.get(comments_url, headers=headers, params=querystring)
 
             if response.status_code == 200:
