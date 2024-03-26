@@ -411,7 +411,7 @@ if st.session_state.get('sentiment_analysis_completed', False):
 
 # Initialize the model and tokenizer once, to be reused
 
-@st.cache_resource(allow_output_mutation=True, hash_funcs={"_thread.RLock": lambda _: None, "builtins.weakref": lambda _: None})
+@st.cache_resource
 def load_model_and_tokenizer():
     tokenizer = AutoTokenizer.from_pretrained("j-hartmann/emotion-english-distilroberta-base")
     model = AutoModelForSequenceClassification.from_pretrained("j-hartmann/emotion-english-distilroberta-base")
