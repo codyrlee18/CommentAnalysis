@@ -191,6 +191,7 @@ def scrape_tiktok_comments_to_df(aweme_ids, tt_and_ig_api_key, max_comments_per_
 
         cursor = "0"
         has_more = True
+        comments_fetched_for_video = 0  # Initialize a counter for the comments fetched for the current video
 
         while has_more and comments_fetched_for_video < max_comments_per_video:
             querystring = {"aweme_id": aweme_id, "count": "80", "cursor": cursor}
@@ -211,7 +212,8 @@ def scrape_tiktok_comments_to_df(aweme_ids, tt_and_ig_api_key, max_comments_per_
                         if comments_fetched_for_video >= max_comments_per_video:
                             break
                             
-                    has_more = comments_data.get('has_more', False)
+                     # Check after processing comments if we should continue fetching more
+                    has_more = comments_data.get('has_more', False) and comments_fetched_for_video < max_comments_per_video
                     cursor = comments_data.get('cursor', '0')
                 else:
                     break
