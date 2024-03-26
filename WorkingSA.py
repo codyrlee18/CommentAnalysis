@@ -234,7 +234,7 @@ def codes_to_media_ids(short_codes):
 
 
 
-def scrape_instagram_comments(short_codes, tt_and_ig_api_key, max_comments_per_post=25):
+def scrape_instagram_comments(short_codes, tt_and_ig_api_key, max_comments_per_post=100):
     url = "https://rocketapi-for-instagram.p.rapidapi.com/instagram/media/get_comments"
     headers = {
         "content-type": "application/json",
