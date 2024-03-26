@@ -5,15 +5,12 @@ import numpy as np
 import re
 import nltk
 from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from nltk.sentiment import SentimentIntensityAnalyzer
 import matplotlib.pyplot as plt
 import requests
 import time
 import openai 
 import os
 from openai import OpenAI
-from nrclex import NRCLex
 import seaborn as sns
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
@@ -23,11 +20,6 @@ tt_and_ig_api_key = st.secrets["TIKTOK_AND_INSTAGRAM_API_KEY"]
 
 if 'sentiment_analysis_completed' not in st.session_state:
     st.session_state['sentiment_analysis_completed'] = False
-
-# Ensure NLTK resources are downloaded
-nltk.download('stopwords')
-nltk.download('punkt')
-nltk.download('vader_lexicon')
 
 # Initialize session state for storing fetched comments data
 if 'comments_data' not in st.session_state:
