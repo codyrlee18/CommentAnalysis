@@ -168,7 +168,7 @@ def scrape_comments_to_df(video_ids, youtube_api_key):
 
 # Function to scrape comments and return a DataFrame (TIKTOK)
 # Now includes TikTok creator's username and supports multiple video IDs
-def scrape_tiktok_comments_to_df(aweme_ids, tt_and_ig_api_key):
+def scrape_tiktok_comments_to_df(aweme_ids, tt_and_ig_api_key, max_comments_per_video=500):
     comments_url = "https://scraptik.p.rapidapi.com/list-comments"
     video_details_url = "https://scraptik.p.rapidapi.com/get-post"
     
@@ -192,7 +192,7 @@ def scrape_tiktok_comments_to_df(aweme_ids, tt_and_ig_api_key):
         cursor = "0"
         has_more = True
 
-        while has_more:
+        while has_more and comments_fetched_for_video < max_comments_per_video:
             querystring = {"aweme_id": aweme_id, "count": "80", "cursor": cursor}
             response = requests.get(comments_url, headers=headers, params=querystring)
 
@@ -206,6 +206,11 @@ def scrape_tiktok_comments_to_df(aweme_ids, tt_and_ig_api_key):
                             item['user']['nickname'],
                             item['text']
                         ])
+                        comments_fetched_for_video += 1
+                        # Check if we've reached the limit of comments to fetch for this video
+                        if comments_fetched_for_video >= max_comments_per_video:
+                            break
+                            
                     has_more = comments_data.get('has_more', False)
                     cursor = comments_data.get('cursor', '0')
                 else:
