@@ -332,7 +332,7 @@ def scrape_instagram_comments(short_codes, tt_and_ig_api_key, max_comments_per_p
                 next_min_id = body.get('next_min_id', None)
 
                 for comment in comments:
-                    unique_comment_ids = set()  # Set to track unique username-comment combinations
+                    unique_id = f"{comment['user']['username']}|{comment['text']}"
                     if unique_id not in unique_comment_ids:
                         all_comments.append([short_code, creator_username, comment['user']['username'], comment['text']])
                         unique_comment_ids.add(unique_id)  # Mark this comment as seen
