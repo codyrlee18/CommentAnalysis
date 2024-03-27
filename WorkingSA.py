@@ -160,6 +160,66 @@ def scrape_comments_to_df(video_ids, youtube_api_key):
 
 # Function to scrape comments and return a DataFrame (TIKTOK)
 # Now includes TikTok creator's username and supports multiple video IDs
+# def scrape_tiktok_comments_to_df(aweme_ids, tt_and_ig_api_key, max_comments_per_video=500):
+#     comments_url = "https://scraptik.p.rapidapi.com/list-comments"
+#     video_details_url = "https://scraptik.p.rapidapi.com/get-post"
+    
+#     headers = {
+#         "X-RapidAPI-Key": tt_and_ig_api_key,
+#         "X-RapidAPI-Host": "scraptik.p.rapidapi.com"
+#     }
+
+#     all_comments_data = []
+#     creator_usernames = {}
+
+#     for aweme_id in aweme_ids:
+#         # Fetch the video creator's username
+#         video_response = requests.get(video_details_url, headers=headers, params={"aweme_id": aweme_id})
+#         creator_username = 'Unknown Creator'
+#         if video_response.status_code == 200:
+#             video_data = video_response.json()
+#             creator_username = video_data.get('aweme_detail', {}).get('author', {}).get('ins_id', 'Unknown Creator')
+#             creator_usernames[aweme_id] = creator_username
+
+#         cursor = "0"
+#         has_more = True
+#         comments_fetched_for_video = 0  # Initialize a counter for the comments fetched for the current video
+
+#         while has_more and comments_fetched_for_video < max_comments_per_video:
+#             querystring = {"aweme_id": aweme_id, "count": "80", "cursor": cursor}
+#             response = requests.get(comments_url, headers=headers, params=querystring)
+
+#             if response.status_code == 200:
+#                 comments_data = response.json()
+#                 if 'comments' in comments_data:
+#                     for item in comments_data['comments']:
+#                         all_comments_data.append([
+#                             aweme_id,
+#                             creator_username,
+#                             item['user']['nickname'],
+#                             item['text']
+#                         ])
+#                         comments_fetched_for_video += 1
+#                         # Check if we've reached the limit of comments to fetch for this video
+#                         if comments_fetched_for_video >= max_comments_per_video:
+#                             break
+                            
+#                      # Check after processing comments if we should continue fetching more
+#                     has_more = comments_data.get('has_more', False) and comments_fetched_for_video < max_comments_per_video
+#                     cursor = comments_data.get('cursor', '0')
+#                 else:
+#                     break
+#             else:
+#                 break
+
+#             # Add a 1-second delay before the next request
+#             time.sleep(1)
+
+#     comments_df = pd.DataFrame(all_comments_data, columns=['aweme_id', 'creator_username', 'username', 'comment'])
+#     comments_df.rename(columns={'aweme_id': 'Video ID', 'creator_username':'Creator Username','comment':'Comment'}, inplace=True)   
+    
+#     return comments_df, creator_usernames
+
 def scrape_tiktok_comments_to_df(aweme_ids, tt_and_ig_api_key, max_comments_per_video=500):
     comments_url = "https://scraptik.p.rapidapi.com/list-comments"
     video_details_url = "https://scraptik.p.rapidapi.com/get-post"
@@ -173,50 +233,60 @@ def scrape_tiktok_comments_to_df(aweme_ids, tt_and_ig_api_key, max_comments_per_
     creator_usernames = {}
 
     for aweme_id in aweme_ids:
-        # Fetch the video creator's username
-        video_response = requests.get(video_details_url, headers=headers, params={"aweme_id": aweme_id})
+        # Initialize the creator_username to a default value
         creator_username = 'Unknown Creator'
-        if video_response.status_code == 200:
-            video_data = video_response.json()
-            creator_username = video_data.get('aweme_detail', {}).get('author', {}).get('ins_id', 'Unknown Creator')
-            creator_usernames[aweme_id] = creator_username
+        try:
+            video_response = requests.get(video_details_url, headers=headers, params={"aweme_id": aweme_id})
+            if video_response.status_code == 200:
+                video_data = video_response.json()
+                # Safely get the creator's username with default fallback
+                creator_username = video_data.get('aweme_detail', {}).get('author', {}).get('ins_id', creator_username)
+            else:
+                print(f"Error fetching video details for {aweme_id}: HTTP {video_response.status_code}")
+        except Exception as e:
+            print(f"Exception fetching video details for {aweme_id}: {str(e)}")
+        
+        # Store the username in case it's needed later
+        creator_usernames[aweme_id] = creator_username
 
         cursor = "0"
         has_more = True
-        comments_fetched_for_video = 0  # Initialize a counter for the comments fetched for the current video
+        comments_fetched_for_video = 0
 
         while has_more and comments_fetched_for_video < max_comments_per_video:
-            querystring = {"aweme_id": aweme_id, "count": "80", "cursor": cursor}
-            response = requests.get(comments_url, headers=headers, params=querystring)
-
-            if response.status_code == 200:
-                comments_data = response.json()
-                if 'comments' in comments_data:
-                    for item in comments_data['comments']:
-                        all_comments_data.append([
-                            aweme_id,
-                            creator_username,
-                            item['user']['nickname'],
-                            item['text']
-                        ])
-                        comments_fetched_for_video += 1
-                        # Check if we've reached the limit of comments to fetch for this video
-                        if comments_fetched_for_video >= max_comments_per_video:
-                            break
-                            
-                     # Check after processing comments if we should continue fetching more
-                    has_more = comments_data.get('has_more', False) and comments_fetched_for_video < max_comments_per_video
-                    cursor = comments_data.get('cursor', '0')
+            try:
+                response = requests.get(comments_url, headers=headers, params={"aweme_id": aweme_id, "count": "80", "cursor": cursor})
+                if response.status_code == 200:
+                    comments_data = response.json()
+                    comments_list = comments_data.get('comments', [])
+                    if comments_list:  # Ensure comments_list is not None before iteration
+                        for item in comments_list:
+                            all_comments_data.append([
+                                aweme_id,
+                                creator_username,
+                                item['user']['nickname'],
+                                item['text']
+                            ])
+                            comments_fetched_for_video += 1
+                            if comments_fetched_for_video >= max_comments_per_video:
+                                break
+                        
+                        has_more = comments_data.get('has_more', False) and comments_fetched_for_video < max_comments_per_video
+                        cursor = comments_data.get('cursor', '0')
+                    else:
+                        break
                 else:
+                    print(f"Failed to fetch comments for {aweme_id}: HTTP {response.status_code}")
                     break
-            else:
+            except Exception as e:
+                print(f"Exception fetching comments for {aweme_id}: {str(e)}")
                 break
 
-            # Add a 1-second delay before the next request
+            # Add a delay to prevent hitting API rate limits
             time.sleep(1)
 
     comments_df = pd.DataFrame(all_comments_data, columns=['aweme_id', 'creator_username', 'username', 'comment'])
-    comments_df.rename(columns={'aweme_id': 'Video ID', 'creator_username':'Creator Username','comment':'Comment'}, inplace=True)   
+    comments_df.rename(columns={'aweme_id': 'Video ID', 'creator_username':'Creator Username', 'comment':'Comment'}, inplace=True)
     
     return comments_df, creator_usernames
 
@@ -232,7 +302,6 @@ def codes_to_media_ids(short_codes):
     return code_to_media_id
 
 
-
 def scrape_instagram_comments(short_codes, tt_and_ig_api_key, max_comments_per_post=100):
     url = "https://rocketapi-for-instagram.p.rapidapi.com/instagram/media/get_comments"
     headers = {
@@ -241,6 +310,7 @@ def scrape_instagram_comments(short_codes, tt_and_ig_api_key, max_comments_per_p
         "X-RapidAPI-Host": "rocketapi-for-instagram.p.rapidapi.com"
     }
     all_comments = []
+    unique_comment_ids = set()  # Set to track unique username-comment combinations
     code_to_media_id = codes_to_media_ids(short_codes)
     
     for short_code, media_id in code_to_media_id.items():
@@ -262,10 +332,14 @@ def scrape_instagram_comments(short_codes, tt_and_ig_api_key, max_comments_per_p
                 next_min_id = body.get('next_min_id', None)
 
                 for comment in comments:
-                    all_comments.append([short_code, creator_username, comment['user']['username'], comment['text']])
-                    comments_fetched += 1
-                    if comments_fetched >= max_comments_per_post:
-                        break  # Break if we have fetched the maximum number of comments per post
+                    unique_comment_ids = set()  # Set to track unique username-comment combinations
+                    if unique_id not in unique_comment_ids:
+                        all_comments.append([short_code, creator_username, comment['user']['username'], comment['text']])
+                        unique_comment_ids.add(unique_id)  # Mark this comment as seen
+                        comments_fetched += 1
+                    
+                        if comments_fetched >= max_comments_per_post:
+                            break  # Break if we have fetched the maximum number of comments per post
 
                 if not next_min_id or comments_fetched >= max_comments_per_post:
                     break  # Break the loop if there's no more pagination or we reached the max comments per post
@@ -278,28 +352,23 @@ def scrape_instagram_comments(short_codes, tt_and_ig_api_key, max_comments_per_p
 
 @st.cache_resource
 def load_sentiment_model_and_tokenizer():
-    tokenizer = AutoTokenizer.from_pretrained("siebert/sentiment-roberta-large-english")
-    model = AutoModelForSequenceClassification.from_pretrained("siebert/sentiment-roberta-large-english")
+    tokenizer = AutoTokenizer.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment-latest")
+    model = AutoModelForSequenceClassification.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment-latest")
     return tokenizer, model
     
 tokenizer, model = load_sentiment_model_and_tokenizer()
 
 
 #Let's use Hugging Face instead to perform sentiment analysis:
-# Function to perform SENTIMENT ANALYSIS
 def sentiment_analysis(df):
     # Define a function to classify sentiment of each comment
     def classify_comment_sentiment(comment):
-        inputs = tokenizer.encode(comment, return_tensors="pt", max_length=512, truncation=True)
-        outputs = model(inputs)
-        score = outputs.logits.squeeze().tolist()[1]  # Get the score for the positive class
-        if score >= 0.55:
-            label = "positive"
-        elif score <= 0.45:
-            label = "negative"
-        else:
-            label = "neutral"
-        return label
+        inputs = tokenizer(comment, return_tensors="pt", padding=True, truncation=True, max_length=512)
+        outputs = model(**inputs)
+        probabilities = torch.nn.functional.softmax(outputs.logits, dim=-1)
+        sentiment_index = torch.argmax(probabilities, dim=-1).item()
+        labels = ['negative', 'neutral', 'positive']
+        return labels[sentiment_index]
 
     # Apply the function to the 'Comment' column to create the 'Sentiment' column
     df['Sentiment'] = df['Comment'].apply(classify_comment_sentiment)
